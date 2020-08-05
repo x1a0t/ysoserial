@@ -321,6 +321,18 @@
 			<artifactId>vaadin-server</artifactId>
 			<version>7.7.14</version>
 		</dependency>
+
+        <!-- ApereoCAS -->
+        <dependency>
+            <groupId>org.cryptacular</groupId>
+            <artifactId>cryptacular</artifactId>
+            <version>1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jasig</groupId>
+            <artifactId>spring-webflow-client-repo</artifactId>
+            <version>1.0.0</version>
+        </dependency>
 	</dependencies>
 
 	<profiles>
