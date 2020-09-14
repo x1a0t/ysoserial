@@ -333,7 +333,15 @@
             <artifactId>spring-webflow-client-repo</artifactId>
             <version>1.0.0</version>
         </dependency>
-	</dependencies>
+
+        <!-- Shiro -->
+        <dependency>
+            <groupId>org.apache.shiro</groupId>
+            <artifactId>shiro-core</artifactId>
+            <version>1.2.4</version>
+        </dependency>
+
+    </dependencies>
 
 	<profiles>
         <profile>
