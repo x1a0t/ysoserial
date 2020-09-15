@@ -116,6 +116,11 @@ public class Gadgets {
             classBytes = new byte[in.available()];
             in.read(classBytes);
             in.close();
+        } else if (command.startsWith("class:")) {
+            String className = command.split(":")[1];
+            ClassPool pool = ClassPool.getDefault();
+            CtClass ctClass = pool.get(className);
+            classBytes = ctClass.toBytecode();
         } else {
             // use template gadget class
             ClassPool pool = ClassPool.getDefault();
